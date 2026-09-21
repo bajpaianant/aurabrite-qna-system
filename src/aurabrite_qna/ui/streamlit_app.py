@@ -68,6 +68,14 @@ def main() -> None:
         "Python sandbox · Validator · Synthesizer"
     )
 
+    # Seed the persistent question buffer so sample-button clicks survive
+    # the subsequent Ask-click rerun. Without a `key=` on st.text_input the
+    # widget resets to `value=""` on every rerun where `chosen` is None,
+    # which is every rerun *except* the sample click itself — so the Ask
+    # button ended up disabled by the time the user hit it.
+    if "question_input" not in st.session_state:
+        st.session_state["question_input"] = ""
+
     with st.sidebar:
         st.subheader("Configuration")
         st.text(f"LLM provider : {SETTINGS.llm_provider}")
@@ -83,13 +91,14 @@ def main() -> None:
             "Explain the Dentafresh EMEA volume decline and its root cause.",
             "What is our clean-label opportunity for 2026?",
         ]
-        chosen = None
-        for ex in examples:
-            if st.button(ex, use_container_width=True):
-                chosen = ex
+        for i, ex in enumerate(examples):
+            if st.button(ex, use_container_width=True, key=f"sample_{i}"):
+                st.session_state["question_input"] = ex
 
     question = st.text_input(
-        "Enterprise question", value=chosen or "", placeholder="Ask about AuraBrite ..."
+        "Enterprise question",
+        key="question_input",
+        placeholder="Ask about AuraBrite ...",
     )
     submitted = st.button("Ask", type="primary", disabled=not question)
 
