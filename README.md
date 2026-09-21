@@ -267,7 +267,7 @@ The repo is deployment-ready. Files that make it work out-of-the-box:
   # Prefer a Gemini 3.x Flash id — gemini-2.5-flash is often listed by
   # ListModels but blocked for generateContent on new keys.
   LLM_PROVIDER   = "litellm"
-  LLM_MODEL      = "gemini/gemini-3.5-flash"
+  LLM_MODEL      = "gemini/gemini-flash-lite-latest"
   GEMINI_API_KEY = "AQ.... or AIza..."
   ```
   After editing secrets, click **Manage app → ⋮ → Reboot app** to pick up

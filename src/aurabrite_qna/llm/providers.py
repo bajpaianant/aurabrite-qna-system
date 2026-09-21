@@ -107,9 +107,13 @@ class LiteLLMClient:
                 )
             elif "quota" in low or "rate limit" in low or "429" in msg:
                 hint = (
-                    "\n\nHint: You hit a rate limit or quota. Slow down "
-                    "requests, or upgrade the key at "
-                    "https://aistudio.google.com/apikey."
+                    "\n\nHint: Gemini free-tier quota is exhausted. "
+                    "`gemini-3.5-flash` is capped at about 20 requests/day "
+                    "and each question uses ~5–8 LLM calls. In Streamlit "
+                    "Secrets set:\n"
+                    '  LLM_MODEL = "gemini/gemini-flash-lite-latest"\n'
+                    "then Save and Reboot. Lite aliases have a much higher "
+                    "free-tier cap. See https://ai.google.dev/gemini-api/docs/rate-limits"
                 )
             raise LLMError(f"LiteLLM call failed: {e}{hint}") from e
 
