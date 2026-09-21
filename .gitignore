@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+
+# Env
+.env
+.env.local
+
+# Data artefacts (regenerate with `aurabrite init` or
+# `scripts/generate_synthetic_data.py`)
+data/warehouse/*.duckdb
+data/warehouse/*.sqlite
+data/warehouse/vector_index/
+data/documents/*.md
+!data/warehouse/.gitkeep
+!data/documents/.gitkeep
+
+# Notebook noise
+.ipynb_checkpoints/
+
+# OS
+.DS_Store

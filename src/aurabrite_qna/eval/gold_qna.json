@@ -1,0 +1,65 @@
+{
+  "version": "1.0",
+  "description": "Gold-standard Q&A set for the AuraBrite Multi-Agent QnA System.",
+  "items": [
+    {
+      "id": "q1-apac-auraglow-q4",
+      "question": "Why did AuraGlow sales drop in APAC in Q4 2025, and by how much?",
+      "expected_agents": ["sql", "docs"],
+      "expected_citations": [
+        "Supply_Chain_Disruption_Report_Q4_2025.md",
+        "AuraGlow_Brand_Strategy_2025_2026.md"
+      ],
+      "expected_keywords": ["singapore", "strike", "14", "niacinamide"]
+    },
+    {
+      "id": "q2-nutrivita-ec-lift",
+      "question": "How much did NutriVita E-Commerce revenue grow in H1 2026, and why?",
+      "expected_agents": ["sql", "docs"],
+      "expected_citations": ["Consumer_Insights_Q1_2026.md"],
+      "expected_keywords": ["clean-label", "11", "nutrivita"]
+    },
+    {
+      "id": "q3-dentafresh-emea-decline",
+      "question": "Explain the Dentafresh EMEA volume decline in late 2025 and give the root cause.",
+      "expected_agents": ["sql", "docs"],
+      "expected_citations": ["Supply_Chain_Disruption_Report_Q4_2025.md"],
+      "expected_keywords": ["palm oil", "9"]
+    },
+    {
+      "id": "q4-top-brand-modern-trade-2025",
+      "question": "Which brand had the highest units in Modern Trade during 2025?",
+      "expected_agents": ["sql"],
+      "expected_citations": [],
+      "expected_keywords": ["cleanx", "auraglow", "nutrivita", "dentafresh"]
+    },
+    {
+      "id": "q5-tesco-rebate",
+      "question": "What is our base rebate rate with Tesco for personal care?",
+      "expected_agents": ["docs"],
+      "expected_citations": ["Retail_Partnership_Notes_Tesco_Walmart_Amazon.md"],
+      "expected_keywords": ["14", "tesco"]
+    },
+    {
+      "id": "q6-kpi-definition",
+      "question": "What does DIO stand for in our KPI glossary?",
+      "expected_agents": ["docs"],
+      "expected_citations": ["KPI_Glossary.md"],
+      "expected_keywords": ["days of inventory", "dio"]
+    },
+    {
+      "id": "q7-auraglow-campaign-spend",
+      "question": "How much is AuraGlow spending on working media in 2026?",
+      "expected_agents": ["docs"],
+      "expected_citations": ["AuraGlow_Brand_Strategy_2025_2026.md"],
+      "expected_keywords": ["56", "million"]
+    },
+    {
+      "id": "q8-yoy-nutrivita",
+      "question": "What was the YoY growth of NutriVita net revenue between 2024 and 2025?",
+      "expected_agents": ["sql", "python"],
+      "expected_citations": [],
+      "expected_keywords": ["nutrivita", "growth"]
+    }
+  ]
+}

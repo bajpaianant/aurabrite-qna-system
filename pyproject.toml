@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aurabrite-qna"
+version = "0.1.0"
+description = "Enterprise FMCG Multi-Agent QnA System (AuraBrite Consumer Brands prototype)"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "AuraBrite AI Platform" }]
+license = { text = "MIT" }
+dependencies = [
+  # Core
+  "pydantic>=2.6",
+  "python-dotenv>=1.0",
+  "rich>=13.7",
+  "typer>=0.12",
+  "numpy>=1.26",
+  "pandas>=2.2",
+  # Storage
+  "duckdb>=0.10; platform_system != 'Windows'",
+  # RAG
+  "rank-bm25>=0.2.2",
+  # Graph / agents (optional at runtime; fallback graph exists)
+  "langgraph>=0.2.0",
+  "langchain-core>=0.2.0",
+  # LLM providers (all optional; offline mock provider is default)
+  "litellm>=1.40",
+  # Web search (optional)
+  "duckduckgo-search>=6.1",
+  # UI
+  "streamlit>=1.36",
+  # Notebook
+  "jupyter>=1.0",
+  "matplotlib>=3.8",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+  "ruff>=0.5",
+]
+
+[project.scripts]
+aurabrite = "aurabrite_qna.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"aurabrite_qna" = ["py.typed"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
