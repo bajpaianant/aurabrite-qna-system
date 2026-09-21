@@ -95,6 +95,7 @@ def main() -> None:
         for i, ex in enumerate(examples):
             if st.button(ex, use_container_width=True, key=f"sample_{i}"):
                 st.session_state["question_input"] = ex
+                st.session_state["auto_ask"] = True
 
     question = st.text_input(
         "Enterprise question",
@@ -102,12 +103,15 @@ def main() -> None:
         placeholder="Ask about AuraBrite ...",
     )
     submitted = st.button("Ask", type="primary", disabled=not question)
+    auto_ask = st.session_state.pop("auto_ask", False)
 
-    if submitted and question:
+    if (submitted or auto_ask) and question:
         try:
-            with st.spinner("Running multi-agent graph ..."):
+            with st.spinner(
+                "Running multi-agent graph (Gemini, ~15–40s) ...",
+            ):
                 state = _get_orchestrator().answer(question)
-        except LLMError as exc:
+        except (LLMError, Exception) as exc:
             st.error(str(exc))
             return
 

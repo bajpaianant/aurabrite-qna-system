@@ -58,17 +58,29 @@ class LiteLLMClient:
         import litellm  # type: ignore
 
         t0 = time.perf_counter()
+        temp = temperature if temperature is not None else self.temperature
+        model_l = (self.model or "").lower()
+        extra: dict = {
+            # Hard cap so a hung Gemini thinking loop cannot freeze the
+            # Streamlit "Ask" spinner indefinitely.
+            "timeout": 30,
+            "num_retries": 1,
+        }
+        if "gemini-3" in model_l:
+            # LiteLLM warns that temperature < 1.0 on Gemini 3 can cause
+            # infinite thinking loops. Force 1.0 and disable extra thinking
+            # so a 7-agent graph finishes in tens of seconds, not minutes.
+            extra["temperature"] = 1.0 if temp < 1.0 else temp
+            extra["reasoning_effort"] = "none"
+        else:
+            extra["temperature"] = temp
         try:
             resp = litellm.completion(
                 model=self.model,
                 messages=[{"role": m.role, "content": m.content} for m in messages],
-                temperature=temperature if temperature is not None else self.temperature,
                 max_tokens=max_tokens,
                 stop=stop,
-                # LiteLLM auto-retries transient 5xx / 429 with exponential
-                # backoff. Gemini in particular emits 503s from its alpha
-                # channels for a few seconds under load.
-                num_retries=3,
+                **extra,
             )
         except Exception as e:  # pragma: no cover
             # Rewrap common failure modes with actionable hints so users

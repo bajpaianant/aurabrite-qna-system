@@ -46,20 +46,31 @@ class WebSearchTool:
 # ---------------------------------------------------------------------------
 
 def _duckduckgo(query: str, top_k: int) -> list[WebSearchResult]:
+    from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
     from duckduckgo_search import DDGS  # type: ignore
 
-    out: list[WebSearchResult] = []
-    with DDGS() as ddgs:
-        for hit in ddgs.text(query, max_results=top_k):
-            out.append(
-                WebSearchResult(
-                    title=hit.get("title", "")[:200],
-                    url=hit.get("href", ""),
-                    snippet=hit.get("body", "")[:400],
-                    source="duckduckgo",
+    def _run() -> list[WebSearchResult]:
+        out: list[WebSearchResult] = []
+        with DDGS() as ddgs:
+            for hit in ddgs.text(query, max_results=top_k):
+                out.append(
+                    WebSearchResult(
+                        title=hit.get("title", "")[:200],
+                        url=hit.get("href", ""),
+                        snippet=hit.get("body", "")[:400],
+                        source="duckduckgo",
+                    )
                 )
-            )
-    return out
+        return out
+
+    # Cloud runtimes often hang inside DDGS forever; fail over to the
+    # offline stub instead of freezing the Ask spinner.
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        fut = pool.submit(_run)
+        try:
+            return fut.result(timeout=8)
+        except FuturesTimeout as e:
+            raise TimeoutError("duckduckgo search timed out after 8s") from e
 
 
 def _tavily(query: str, top_k: int, api_key: str) -> list[WebSearchResult]:
