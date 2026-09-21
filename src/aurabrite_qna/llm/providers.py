@@ -12,12 +12,40 @@ import time
 from .base import ChatMessage, LLMError, LLMResponse
 
 
+def _force_gemini_studio_v1beta() -> None:
+    """LiteLLM 1.102 routes any ``gemini-3*`` model to Google's ``v1alpha`` API.
+
+    AI Studio ``generateContent`` for current Flash/Pro models lives on
+    ``v1beta``. ``v1alpha`` returns 503 for those same model ids, which is
+    exactly what we hit in production with ``gemini-3.6-flash``. Patch the
+    URL builder once per process so Gemini 3.x calls go to ``v1beta``.
+    """
+    try:
+        from litellm.llms.vertex_ai import vertex_llm_base as _base  # type: ignore
+    except Exception:  # pragma: no cover
+        return
+    orig = getattr(_base, "_get_gemini_url", None)
+    if orig is None or getattr(orig, "_aurabrite_v1beta", False):
+        return
+
+    def _wrapped(mode, model, stream=None):  # noqa: ANN001
+        url, endpoint = orig(mode, model, stream)
+        if isinstance(url, str) and "/v1alpha/" in url:
+            url = url.replace("/v1alpha/", "/v1beta/")
+        return url, endpoint
+
+    _wrapped._aurabrite_v1beta = True  # type: ignore[attr-defined]
+    _base._get_gemini_url = _wrapped
+
+
 class LiteLLMClient:
     provider = "litellm"
 
     def __init__(self, model: str, temperature: float = 0.1):
         self.model = model
         self.temperature = temperature
+        if "gemini" in (model or "").lower():
+            _force_gemini_studio_v1beta()
 
     def complete(
         self,
@@ -50,22 +78,20 @@ class LiteLLMClient:
             low = msg.lower()
             if "not found" in low and "gemini" in low:
                 hint = (
-                    "\n\nHint: Google's `generativelanguage.googleapis.com` "
-                    "endpoint returned 404 for this model. Common causes:\n"
-                    "  1. The model name is not in your API tier. Try "
-                    "`gemini/gemini-2.0-flash-exp` (free-tier friendly) "
-                    "or `gemini/gemini-1.5-flash-002`.\n"
-                    "  2. Your `GEMINI_API_KEY` is an OAuth token / "
-                    "Vertex credential (starts with `AQ.` or `ya29.`), "
-                    "not a Google AI Studio API key. Generate a proper "
-                    "one at https://aistudio.google.com/apikey — it "
-                    "starts with `AIza...`."
+                    "\n\nHint: Google returned 404 for this model id. "
+                    "`ListModels` can still list a model that "
+                    "`generateContent` has retired (e.g. gemini-2.5-flash "
+                    "for newer AI Studio keys). Set LLM_MODEL to one of:\n"
+                    "  gemini/gemini-3.5-flash\n"
+                    "  gemini/gemini-flash-latest\n"
+                    "  gemini/gemini-3.6-flash\n"
+                    "then reboot the app."
                 )
             elif "unauthenticated" in low or "api key not valid" in low:
                 hint = (
-                    "\n\nHint: Your GEMINI_API_KEY was rejected. Confirm "
-                    "you copied a Google AI Studio key (starts with "
-                    "`AIza...`) from https://aistudio.google.com/apikey."
+                    "\n\nHint: GEMINI_API_KEY was rejected. Generate a "
+                    "key at https://aistudio.google.com/apikey (newer "
+                    "keys start with `AQ.`; older ones with `AIza...`)."
                 )
             elif "quota" in low or "rate limit" in low or "429" in msg:
                 hint = (

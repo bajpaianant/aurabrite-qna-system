@@ -18,6 +18,7 @@ import streamlit as st  # noqa: E402
 
 from aurabrite_qna.agents import build_orchestrator  # noqa: E402
 from aurabrite_qna.config import SETTINGS  # noqa: E402
+from aurabrite_qna.llm.base import LLMError  # noqa: E402
 from aurabrite_qna.data import connect  # noqa: E402
 from aurabrite_qna.data.generator import generate_all  # noqa: E402
 from aurabrite_qna.rag import HybridRetriever  # noqa: E402
@@ -103,8 +104,12 @@ def main() -> None:
     submitted = st.button("Ask", type="primary", disabled=not question)
 
     if submitted and question:
-        with st.spinner("Running multi-agent graph ..."):
-            state = _get_orchestrator().answer(question)
+        try:
+            with st.spinner("Running multi-agent graph ..."):
+                state = _get_orchestrator().answer(question)
+        except LLMError as exc:
+            st.error(str(exc))
+            return
 
         col1, col2 = st.columns([2, 1])
 
