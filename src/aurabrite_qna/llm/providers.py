@@ -37,9 +37,43 @@ class LiteLLMClient:
                 temperature=temperature if temperature is not None else self.temperature,
                 max_tokens=max_tokens,
                 stop=stop,
+                # LiteLLM auto-retries transient 5xx / 429 with exponential
+                # backoff. Gemini in particular emits 503s from its alpha
+                # channels for a few seconds under load.
+                num_retries=3,
             )
         except Exception as e:  # pragma: no cover
-            raise LLMError(f"LiteLLM call failed: {e}") from e
+            # Rewrap common failure modes with actionable hints so users
+            # do not have to dig through a 40-line vendor traceback.
+            msg = str(e)
+            hint = ""
+            low = msg.lower()
+            if "not found" in low and "gemini" in low:
+                hint = (
+                    "\n\nHint: Google's `generativelanguage.googleapis.com` "
+                    "endpoint returned 404 for this model. Common causes:\n"
+                    "  1. The model name is not in your API tier. Try "
+                    "`gemini/gemini-2.0-flash-exp` (free-tier friendly) "
+                    "or `gemini/gemini-1.5-flash-002`.\n"
+                    "  2. Your `GEMINI_API_KEY` is an OAuth token / "
+                    "Vertex credential (starts with `AQ.` or `ya29.`), "
+                    "not a Google AI Studio API key. Generate a proper "
+                    "one at https://aistudio.google.com/apikey — it "
+                    "starts with `AIza...`."
+                )
+            elif "unauthenticated" in low or "api key not valid" in low:
+                hint = (
+                    "\n\nHint: Your GEMINI_API_KEY was rejected. Confirm "
+                    "you copied a Google AI Studio key (starts with "
+                    "`AIza...`) from https://aistudio.google.com/apikey."
+                )
+            elif "quota" in low or "rate limit" in low or "429" in msg:
+                hint = (
+                    "\n\nHint: You hit a rate limit or quota. Slow down "
+                    "requests, or upgrade the key at "
+                    "https://aistudio.google.com/apikey."
+                )
+            raise LLMError(f"LiteLLM call failed: {e}{hint}") from e
 
         text = resp["choices"][0]["message"]["content"]
         usage = getattr(resp, "usage", {}) or {}

@@ -262,8 +262,17 @@ The repo is deployment-ready. Files that make it work out-of-the-box:
   ANTHROPIC_API_KEY = "sk-ant-..."
 
   # Google Gemini (via LiteLLM — GEMINI_API_KEY is auto-detected)
-  LLM_PROVIDER = "litellm"
-  LLM_MODEL    = "gemini/gemini-2.5-flash"
+  # IMPORTANT: use a Google AI Studio key (starts with `AIza...`, 39 chars).
+  # Get one at https://aistudio.google.com/apikey.
+  # Vertex AI OAuth tokens (`AQ.` / `ya29.` prefix) will NOT work here —
+  # they authenticate against a different endpoint that LiteLLM's
+  # `gemini/*` provider does not target.
+  LLM_PROVIDER   = "litellm"
+  LLM_MODEL      = "gemini/gemini-2.0-flash-exp"   # stable free-tier default
+  # Alternatives if you have paid access:
+  #   gemini/gemini-1.5-flash-002   # cheap, GA
+  #   gemini/gemini-1.5-pro         # higher quality, slower
+  #   gemini/gemini-2.5-flash       # newest, may be blocked for new keys
   GEMINI_API_KEY = "AIza..."
   ```
   After editing secrets, click **Manage app → ⋮ → Reboot app** to pick up
