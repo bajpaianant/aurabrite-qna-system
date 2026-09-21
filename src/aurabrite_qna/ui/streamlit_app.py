@@ -36,12 +36,27 @@ def _get_retriever():
     return HybridRetriever.from_docs_dir(SETTINGS.docs_dir, SETTINGS.vector_dir)
 
 
-def _ensure_data() -> None:
+@st.cache_resource(show_spinner="Bootstrapping synthetic warehouse & RAG index (one-time) ...")
+def _bootstrap_data() -> bool:
+    """One-time cold-start bootstrap.
+
+    Wrapped in ``@st.cache_resource`` on purpose: Streamlit provides a
+    thread-safe, process-wide lock around cached-resource construction, so
+    concurrent script runs (which happen the moment the app boots and
+    multiple viewers land at the same time) serialize on the same lock
+    instead of racing each other into a DuckDB
+    ``Catalog write-write conflict`` on ``dim_product`` / ``dim_geography``.
+    """
     if not SETTINGS.warehouse_path.exists():
-        with st.spinner("Bootstrapping synthetic warehouse & RAG index (one-time) ..."):
-            with connect(SETTINGS.warehouse_path) as wh:
-                generate_all(wh, SETTINGS.docs_dir)
-            HybridRetriever.rebuild(SETTINGS.docs_dir, SETTINGS.vector_dir)
+        SETTINGS.warehouse_path.parent.mkdir(parents=True, exist_ok=True)
+        with connect(SETTINGS.warehouse_path) as wh:
+            generate_all(wh, SETTINGS.docs_dir)
+        HybridRetriever.rebuild(SETTINGS.docs_dir, SETTINGS.vector_dir)
+    return True
+
+
+def _ensure_data() -> None:
+    _bootstrap_data()
 
 
 def main() -> None:

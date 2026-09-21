@@ -196,6 +196,7 @@ All settings are optional and driven by env vars (see `.env.example`):
 | `LLM_MODEL` | `mock-supervisor` | Model name (provider-specific) |
 | `OPENAI_API_KEY` | *(unset)* | Required for `openai` provider |
 | `ANTHROPIC_API_KEY` | *(unset)* | Required for `anthropic` provider |
+| `GEMINI_API_KEY` | *(unset)* | Read by LiteLLM when using a `gemini/…` model |
 | `WEB_SEARCH_PROVIDER` | `duckduckgo` | `duckduckgo` \| `tavily` \| `none` |
 | `AURABRITE_WAREHOUSE_PATH` | `./data/warehouse/aurabrite.duckdb` | Warehouse file |
 | `AURABRITE_MAX_AGENT_STEPS` | `8` | Safety cap on graph iterations |
@@ -219,7 +220,6 @@ The repo is deployment-ready. Files that make it work out-of-the-box:
 |---|---|
 | `streamlit_app.py` (repo root) | Cloud's default entrypoint — thin shim that puts `src/` on `sys.path` and calls the real UI. |
 | `requirements.txt` | Cloud's package installer. Mirrors `pyproject.toml` deps. |
-| `runtime.txt` | Pins Python 3.11 (matches local dev). |
 | `.streamlit/config.toml` | Dark theme + server defaults. |
 | `.streamlit/secrets.toml.example` | Template for the app's *Secrets* panel. |
 
@@ -247,9 +247,27 @@ The repo is deployment-ready. Files that make it work out-of-the-box:
 
 * The public URL is `https://<slug>.streamlit.app`.
 * Every push to the tracked branch triggers a rebuild.
-* To use a real LLM, add the provider secrets (`OPENAI_API_KEY` etc.) in the
-  app's *Secrets* panel and set `LLM_PROVIDER = "openai"` (or `anthropic` /
-  `litellm`). No code change needed.
+* To use a real LLM, add the provider secrets in the app's *Secrets* panel.
+  No code change needed. Example configs:
+
+  ```toml
+  # OpenAI
+  LLM_PROVIDER = "openai"
+  LLM_MODEL    = "gpt-4o-mini"
+  OPENAI_API_KEY = "sk-..."
+
+  # Anthropic
+  LLM_PROVIDER = "anthropic"
+  LLM_MODEL    = "claude-3-5-sonnet-latest"
+  ANTHROPIC_API_KEY = "sk-ant-..."
+
+  # Google Gemini (via LiteLLM — GEMINI_API_KEY is auto-detected)
+  LLM_PROVIDER = "litellm"
+  LLM_MODEL    = "gemini/gemini-2.5-flash"
+  GEMINI_API_KEY = "AIza..."
+  ```
+  After editing secrets, click **Manage app → ⋮ → Reboot app** to pick up
+  the new values (Python module-level `SETTINGS` is captured on first import).
 * Cloud caches the warehouse to the container's writable disk; it will
   regenerate on cold starts (deterministic seed, ~10 s).
 
