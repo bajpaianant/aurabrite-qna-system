@@ -1,0 +1,28 @@
+# Streamlit Community Cloud reads this file.
+# Keep it in lock-step with pyproject.toml [project].dependencies.
+
+pydantic>=2.6
+python-dotenv>=1.0
+rich>=13.7
+typer>=0.12
+numpy>=1.26
+pandas>=2.2
+
+# Structured storage
+duckdb>=0.10
+
+# RAG
+rank-bm25>=0.2.2
+
+# Agent framework
+langgraph>=0.2.0
+langchain-core>=0.2.0
+
+# LLM providers (all optional at runtime; default is the offline mock)
+litellm>=1.40
+
+# Web search
+duckduckgo-search>=6.1
+
+# UI
+streamlit>=1.36

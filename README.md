@@ -211,6 +211,50 @@ no environment needed to read the outputs.
 
 ---
 
+## ☁️ Deploy to Streamlit Community Cloud
+
+The repo is deployment-ready. Files that make it work out-of-the-box:
+
+| File | Purpose |
+|---|---|
+| `streamlit_app.py` (repo root) | Cloud's default entrypoint — thin shim that puts `src/` on `sys.path` and calls the real UI. |
+| `requirements.txt` | Cloud's package installer. Mirrors `pyproject.toml` deps. |
+| `runtime.txt` | Pins Python 3.11 (matches local dev). |
+| `.streamlit/config.toml` | Dark theme + server defaults. |
+| `.streamlit/secrets.toml.example` | Template for the app's *Secrets* panel. |
+
+### One-time deploy walkthrough
+
+1. Sign in at [share.streamlit.io](https://share.streamlit.io) with the same
+   GitHub account that owns the repo. Grant it access to the repo (private
+   repos are supported on the Community tier — you just have to authorize the
+   Streamlit GitHub App).
+2. Click **"Create app"** → **"Deploy a public app from GitHub"**.
+3. Fill in:
+   * **Repository**: `bajpaianant/aurabrite-qna-system`
+   * **Branch**: `cursor/fmcg-multi-agent-qna-prototype`
+     (or `main` if you push it later)
+   * **Main file path**: `streamlit_app.py`
+   * **App URL (optional)**: e.g. `aurabrite-qna`
+4. Open **"Advanced settings"** and paste the contents of
+   `.streamlit/secrets.toml.example` (edit values first). Leaving it empty is
+   also fine — the app defaults to the deterministic offline mock LLM.
+5. Click **Deploy**. First build takes ~3 min while Cloud installs deps and
+   warms up. On first load the app auto-runs the equivalent of
+   `aurabrite init` (generates warehouse + docs + RAG index) in ~10 s.
+
+### After deploy
+
+* The public URL is `https://<slug>.streamlit.app`.
+* Every push to the tracked branch triggers a rebuild.
+* To use a real LLM, add the provider secrets (`OPENAI_API_KEY` etc.) in the
+  app's *Secrets* panel and set `LLM_PROVIDER = "openai"` (or `anthropic` /
+  `litellm`). No code change needed.
+* Cloud caches the warehouse to the container's writable disk; it will
+  regenerate on cold starts (deterministic seed, ~10 s).
+
+---
+
 ## 🛡️ Safety perimeters
 
 * **SQL** — only `SELECT` / `WITH` on the allow-listed tables; multi-statement,

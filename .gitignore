@@ -10,9 +10,10 @@ env/
 htmlcov/
 .ruff_cache/
 
-# Env
+# Env / secrets
 .env
 .env.local
+.streamlit/secrets.toml
 
 # Data artefacts (regenerate with `aurabrite init` or
 # `scripts/generate_synthetic_data.py`)
